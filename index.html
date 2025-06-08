@@ -1,0 +1,1152 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Block Blast - Premium Edition</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+  />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap');
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      user-select: none;
+    }
+
+    #gameCanvas {
+      touch-action: none;
+      display: block;
+      margin: 0 auto;
+      border-radius: 1rem;
+      box-shadow:
+        0 0 20px rgba(255, 255, 255, 0.15),
+        inset 0 0 30px rgba(255, 255, 255, 0.1);
+      background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+      image-rendering: optimizeSpeed;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: crisp-edges;
+      -ms-interpolation-mode: nearest-neighbor;
+    }
+
+    /* Overlay text animations */
+    @keyframes fadeInScale {
+      0% {
+        opacity: 0;
+        transform: scale(0.5);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+    .fade-in-scale {
+      animation: fadeInScale 0.5s ease forwards;
+    }
+
+    /* Custom scrollbar for settings modal */
+    #settingsModal::-webkit-scrollbar {
+      width: 8px;
+    }
+    #settingsModal::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    #settingsModal::-webkit-scrollbar-thumb {
+      background-color: #4f46e5;
+      border-radius: 10px;
+      border: 2px solid transparent;
+      background-clip: content-box;
+    }
+
+    /* Button premium glow */
+    .btn-glow {
+      position: relative;
+      overflow: hidden;
+      z-index: 0;
+      transition: color 0.3s ease;
+    }
+    .btn-glow::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(45deg, #4f46e5, #3b82f6, #06b6d4, #4f46e5);
+      background-size: 400% 400%;
+      animation: glowAnim 8s linear infinite;
+      filter: blur(10px);
+      opacity: 0.7;
+      z-index: -1;
+      transition: opacity 0.3s ease;
+      border-radius: 0.5rem;
+    }
+    .btn-glow:hover::before {
+      opacity: 1;
+    }
+    @keyframes glowAnim {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* Neon block shadow */
+    .neon-shadow {
+      filter: drop-shadow(0 0 6px rgba(0, 255, 255, 0.7))
+              drop-shadow(0 0 10px rgba(0, 255, 255, 0.5));
+    }
+
+    /* Metallic block shine */
+    .metallic-shine {
+      position: relative;
+      overflow: hidden;
+    }
+    .metallic-shine::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(120deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 60%);
+      transform: rotate(25deg);
+      animation: shineMove 3s linear infinite;
+      pointer-events: none;
+      border-radius: 0.25rem;
+      mix-blend-mode: screen;
+    }
+    @keyframes shineMove {
+      0% { transform: translateX(-100%) rotate(25deg); }
+      100% { transform: translateX(100%) rotate(25deg); }
+    }
+
+    /* Fire block flicker */
+    @keyframes flicker {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.85; }
+    }
+    .fire-flicker {
+      animation: flicker 1.5s infinite ease-in-out;
+    }
+
+    /* Pastel block subtle shadow */
+    .pastel-shadow {
+      box-shadow: 0 0 8px rgba(255, 255, 255, 0.15);
+    }
+
+    /* Scrollbar for select */
+    select {
+      scrollbar-width: thin;
+      scrollbar-color: #4f46e5 transparent;
+    }
+    select::-webkit-scrollbar {
+      width: 8px;
+    }
+    select::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    select::-webkit-scrollbar-thumb {
+      background-color: #4f46e5;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body class="flex flex-col min-h-screen">
+  <header class="p-6 bg-gradient-to-r from-indigo-900 via-purple-900 to-indigo-900 shadow-lg text-center select-none">
+    <h1 class="text-4xl font-extrabold text-white drop-shadow-lg tracking-wide">Block Blast <span class="text-indigo-400">Premium Bjir 🥶</span></h1>
+  </header>
+
+  <main class="flex-grow flex flex-col items-center justify-center p-6 relative">
+    <!-- Opening Screen -->
+    <section id="openingScreen" class="w-full max-w-lg flex flex-col items-center space-y-10">
+      <h2 class="text-3xl font-semibold text-white drop-shadow-md">Welcome to <span class="text-indigo-400">Block Blast</span></h2>
+
+      <div class="w-full space-y-6">
+        <div>
+          <label for="themeSelect" class="block mb-2 font-semibold text-lg text-indigo-300">Pilih Tema Blok:</label>
+          <select id="themeSelect" class="w-full p-3 rounded-lg bg-slate-800 text-white focus:outline-none focus:ring-4 focus:ring-indigo-500 transition shadow-lg">
+            <option value="classic" selected>Classic Colors</option>
+            <option value="neon">Neon Glow</option>
+            <option value="pastel">Pastel Dream</option>
+            <option value="fire">Fire Blaze</option>
+            <option value="metallic">Metallic Chrome</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="ballSelect" class="block mb-2 font-semibold text-lg text-indigo-300">Pilih Gaya Bola:</label>
+          <select id="ballSelect" class="w-full p-3 rounded-lg bg-slate-800 text-white focus:outline-none focus:ring-4 focus:ring-indigo-500 transition shadow-lg">
+            <option value="classic" selected>Classic Yellow</option>
+            <option value="glow">Glowing Neon</option>
+            <option value="metallic">Metallic Shine</option>
+            <option value="fireball">Fireball</option>
+            <option value="crystal">Crystal Sphere</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="speedSelect" class="block mb-2 font-semibold text-lg text-indigo-300">Pilih Tingkat Kecepatan:</label>
+          <select id="speedSelect" class="w-full p-3 rounded-lg bg-slate-800 text-white focus:outline-none focus:ring-4 focus:ring-indigo-500 transition shadow-lg">
+            <option value="slow" selected>bot 😹</option>
+            <option value="normal">biasa 😀</option>
+            <option value="fast">anomali bjir 🥶</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="settingsBtn" class="block mb-2 font-semibold text-lg text-indigo-300">Pengaturan:</label>
+          <button id="settingsBtn" class="w-full btn-glow py-3 rounded-lg font-semibold text-white shadow-lg hover:brightness-110 transition">
+            <i class="fas fa-cog mr-2"></i> Membuka Pengaturan
+          </button>
+        </div>
+      </div>
+
+      <button id="playBtn" class="btn-glow bg-indigo-600 hover:bg-indigo-700 px-12 py-4 rounded-xl text-white font-extrabold text-xl shadow-lg transition">
+        <i class="fas fa-play mr-3"></i> Play
+      </button>
+    </section>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center hidden z-50">
+      <div class="bg-gradient-to-tr from-indigo-900 via-purple-900 to-indigo-900 rounded-2xl p-8 w-full max-w-md relative shadow-2xl ring-2 ring-indigo-500">
+        <h3 class="text-2xl font-bold mb-6 text-white text-center tracking-wide">Settings</h3>
+        <div class="mb-6 flex items-center space-x-4 justify-center">
+          <label for="soundToggle" class="flex items-center space-x-3 cursor-pointer select-none text-white text-lg">
+            <input type="checkbox" id="soundToggle" class="form-checkbox h-6 w-6 text-indigo-500" checked />
+            <span>Aktifkan Efek Suara</span>
+          </label>
+        </div>
+        <button id="closeSettingsBtn" class="absolute top-4 right-4 text-indigo-300 hover:text-white text-3xl" aria-label="Close settings modal">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Game Screen -->
+    <section id="gameScreen" class="hidden flex flex-col items-center w-full max-w-lg relative">
+      <canvas
+        id="gameCanvas"
+        width="480"
+        height="640"
+        aria-label="Block Blast game canvas"
+        class="shadow-2xl rounded-xl"
+      ></canvas>
+
+      <div class="mt-8 w-full flex flex-col items-center space-y-5 select-none">
+        <div class="flex justify-between w-full text-white font-semibold text-xl tracking-wide drop-shadow-lg">
+          <div>Score: <span id="score">0</span></div>
+          <div>Lives: <span id="lives">3</span></div>
+        </div>
+        <div class="flex space-x-4 w-full justify-center">
+          <button
+            id="startBtn"
+            class="btn-glow bg-indigo-600 hover:bg-indigo-700 px-8 py-3 rounded-xl text-white font-bold shadow-lg transition"
+          >
+            Mulai Permainan
+          </button>
+          <button
+            id="restartBtn"
+            class="btn-glow bg-red-600 hover:bg-red-700 px-8 py-3 rounded-xl text-white font-bold shadow-lg transition hidden"
+          >
+            Mulai Ulang Permainan
+          </button>
+          <button
+            id="backToMenuBtn"
+            class="btn-glow bg-slate-700 hover:bg-slate-600 px-8 py-3 rounded-xl text-white font-bold shadow-lg transition"
+          >
+            Kembali ke Menu
+          </button>
+        </div>
+      </div>
+
+      <!-- Overlay text for animations -->
+      <div id="overlayText" class="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
+        <span id="overlayMessage" class="text-6xl font-extrabold text-white opacity-0 drop-shadow-[0_0_15px_rgba(255,255,255,0.8)]"></span>
+      </div>
+    </section>
+  </main>
+
+  <footer class="p-6 bg-gradient-to-r from-indigo-900 via-purple-900 to-indigo-900 text-center text-sm text-indigo-300 select-none drop-shadow-md">
+    &copy; 2025 Block Blast Premium Bjir 🥶 - By Game Gacor 😹
+  </footer>
+
+  <script>
+    (() => {
+      // DOM Elements
+      const openingScreen = document.getElementById("openingScreen");
+      const gameScreen = document.getElementById("gameScreen");
+      const settingsModal = document.getElementById("settingsModal");
+      const settingsBtn = document.getElementById("settingsBtn");
+      const closeSettingsBtn = document.getElementById("closeSettingsBtn");
+      const playBtn = document.getElementById("playBtn");
+      const backToMenuBtn = document.getElementById("backToMenuBtn");
+      const themeSelect = document.getElementById("themeSelect");
+      const ballSelect = document.getElementById("ballSelect");
+      const speedSelect = document.getElementById("speedSelect");
+      const soundToggle = document.getElementById("soundToggle");
+
+      const canvas = document.getElementById("gameCanvas");
+      const ctx = canvas.getContext("2d");
+
+      const scoreEl = document.getElementById("score");
+      const livesEl = document.getElementById("lives");
+      const startBtn = document.getElementById("startBtn");
+      const restartBtn = document.getElementById("restartBtn");
+
+      const overlayText = document.getElementById("overlayText");
+      const overlayMessage = document.getElementById("overlayMessage");
+
+      const WIDTH = canvas.width;
+      const HEIGHT = canvas.height;
+
+      // Paddle properties
+      const paddleWidth = 110;
+      const paddleHeight = 18;
+      const paddleSpeed = 10;
+
+      // Ball properties
+      const ballRadius = 12;
+
+      // Block properties
+      const blockRowCount = 6;
+      const blockColumnCount = 8;
+      const blockWidth = 52;
+      const blockHeight = 22;
+      const blockPadding = 12;
+      const blockOffsetTop = 70;
+      const blockOffsetLeft = 32;
+
+      let rightPressed = false;
+      let leftPressed = false;
+
+      let score = 0;
+      let lives = 3;
+
+      let paddleX = (WIDTH - paddleWidth) / 2;
+
+      let ballX = WIDTH / 2;
+      let ballY = HEIGHT - 50;
+      let ballDX = 5;
+      let ballDY = -5;
+
+      let blocks = [];
+
+      let gameRunning = false;
+      let animationId;
+
+      // For block destruction effect
+      const particles = [];
+
+      // Audio context and sounds
+      let audioCtx;
+      let soundEnabled = true;
+
+      // Current theme and ball style
+      let currentTheme = "classic";
+      let currentBallStyle = "classic";
+
+      // Speed level multiplier for ball velocity
+      let speedMultiplier = 1;
+
+      // Initialize Audio Context
+      function initAudio() {
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+      }
+
+      // Play bounce sound with richer effect and stereo pan
+      function playBounceSound() {
+        if (!audioCtx || !soundEnabled) return;
+        const now = audioCtx.currentTime;
+
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        const panNode = audioCtx.createStereoPanner();
+
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(700 + Math.random() * 200, now);
+
+        gainNode.gain.setValueAtTime(0.15, now);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+
+        panNode.pan.setValueAtTime((Math.random() - 0.5) * 2, now);
+
+        osc.connect(gainNode);
+        gainNode.connect(panNode);
+        panNode.connect(audioCtx.destination);
+
+        osc.start(now);
+        osc.stop(now + 0.15);
+      }
+
+      // Play block break sound with short noise burst and pitch variation
+      function playBlockBreakSound() {
+        if (!audioCtx || !soundEnabled) return;
+        const now = audioCtx.currentTime;
+
+        const bufferSize = audioCtx.sampleRate * 0.1;
+        const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferSize, 2);
+        }
+        const noise = audioCtx.createBufferSource();
+        noise.buffer = buffer;
+
+        const gainNode = audioCtx.createGain();
+        gainNode.gain.setValueAtTime(0.3, now);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+
+        noise.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        noise.start(now);
+        noise.stop(now + 0.1);
+      }
+
+      // Play start game sound (rising beep)
+      function playStartSound() {
+        if (!audioCtx || !soundEnabled) return;
+        const now = audioCtx.currentTime;
+
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(400, now);
+        osc.frequency.linearRampToValueAtTime(1200, now + 0.5);
+
+        gainNode.gain.setValueAtTime(0.25, now);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        osc.start(now);
+        osc.stop(now + 0.5);
+      }
+
+      // Play game over sound (descending beep)
+      function playGameOverSound() {
+        if (!audioCtx || !soundEnabled) return;
+        const now = audioCtx.currentTime;
+
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+
+        osc.type = "sawtooth";
+        osc.frequency.setValueAtTime(1200, now);
+        osc.frequency.exponentialRampToValueAtTime(400, now + 0.7);
+
+        gainNode.gain.setValueAtTime(0.3, now);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
+
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        osc.start(now);
+        osc.stop(now + 0.7);
+      }
+
+      // Particle class for block destruction effect with glow and blur
+      class Particle {
+        constructor(x, y, color) {
+          this.x = x;
+          this.y = y;
+          this.radius = Math.random() * 3 + 2;
+          this.color = color;
+          this.speedX = (Math.random() - 0.5) * 6;
+          this.speedY = (Math.random() - 0.5) * 6;
+          this.alpha = 1;
+          this.decay = 0.03 + Math.random() * 0.02;
+          this.gravity = 0.07;
+          this.velY = this.speedY;
+        }
+        update() {
+          this.x += this.speedX;
+          this.velY += this.gravity;
+          this.y += this.velY;
+          this.alpha -= this.decay;
+          if (this.alpha < 0) this.alpha = 0;
+        }
+        draw(ctx) {
+          ctx.save();
+          ctx.shadowColor = this.color;
+          ctx.shadowBlur = 10;
+          ctx.globalAlpha = this.alpha;
+          ctx.fillStyle = this.color;
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+      }
+
+      // Themes for blocks with premium gradients and effects
+      const themes = {
+        classic: [
+          "#f87171", "#fb923c", "#facc15", "#4ade80", "#60a5fa", "#a78bfa",
+        ],
+        neon: [
+          "#0ff", "#ff0", "#f0f", "#0f0", "#f00", "#00f",
+        ],
+        pastel: [
+          "#f9a8d4", "#a5b4fc", "#fcd34d", "#6ee7b7", "#fca5a5", "#c4b5fd",
+        ],
+        fire: [
+          "#ff4500", "#ff8c00", "#ffa500", "#ff6347", "#ff7f50", "#b22222",
+        ],
+        metallic: [
+          "#d4d4d8", "#a3a3a3", "#737373", "#525252", "#3f3f46", "#27272a",
+        ],
+      };
+
+      // Ball styles drawing helpers with premium effects
+      function drawBallClassic(x, y, r) {
+        const gradient = ctx.createRadialGradient(
+          x,
+          y,
+          r / 4,
+          x,
+          y,
+          r
+        );
+        gradient.addColorStop(0, "#fbbf24");
+        gradient.addColorStop(1, "#b45309");
+
+        ctx.fillStyle = gradient;
+        ctx.shadowColor = "#fbbf24";
+        ctx.shadowBlur = 8;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.closePath();
+
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = "#78350f";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.closePath();
+      }
+
+      function drawBallGlow(x, y, r) {
+        const glowColor = "#0ff";
+        ctx.shadowColor = glowColor;
+        ctx.shadowBlur = 20;
+        ctx.fillStyle = glowColor;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        ctx.strokeStyle = "#06b6d4";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      function drawBallMetallic(x, y, r) {
+        const gradient = ctx.createRadialGradient(
+          x - r / 3,
+          y - r / 3,
+          r / 8,
+          x,
+          y,
+          r
+        );
+        gradient.addColorStop(0, "#e0e0e0");
+        gradient.addColorStop(0.5, "#a0a0a0");
+        gradient.addColorStop(1, "#4b4b4b");
+
+        ctx.fillStyle = gradient;
+        ctx.shadowColor = "#bbb";
+        ctx.shadowBlur = 12;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.closePath();
+
+        ctx.strokeStyle = "#2c2c2c";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      function drawBallFireball(x, y, r) {
+        const gradient = ctx.createRadialGradient(
+          x,
+          y,
+          r / 4,
+          x,
+          y,
+          r
+        );
+        gradient.addColorStop(0, "#ff9a00");
+        gradient.addColorStop(0.5, "#ff4500");
+        gradient.addColorStop(1, "#7f1d00");
+
+        ctx.fillStyle = gradient;
+        ctx.shadowColor = "#ff4500";
+        ctx.shadowBlur = 20;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.closePath();
+
+        ctx.strokeStyle = "#7f1d00";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Flicker flames (small orange arcs)
+        ctx.strokeStyle = "#ffb347";
+        ctx.lineWidth = 1.5;
+        for (let i = 0; i < 3; i++) {
+          const angle = (Math.PI / 4) + (i * Math.PI / 4);
+          ctx.beginPath();
+          ctx.arc(x + Math.cos(angle) * r * 0.7, y + Math.sin(angle) * r * 0.7, r * 0.3, angle, angle + Math.PI / 3);
+          ctx.stroke();
+        }
+      }
+
+      function drawBallCrystal(x, y, r) {
+        // Crystal sphere with subtle inner glow and refraction effect
+        const gradient = ctx.createRadialGradient(
+          x - r / 4,
+          y - r / 4,
+          r / 2,
+          x,
+          y,
+          r
+        );
+        gradient.addColorStop(0, "rgba(255, 255, 255, 0.9)");
+        gradient.addColorStop(0.6, "rgba(173, 216, 230, 0.4)");
+        gradient.addColorStop(1, "rgba(0, 191, 255, 0.1)");
+
+        ctx.fillStyle = gradient;
+        ctx.shadowColor = "rgba(173, 216, 230, 0.7)";
+        ctx.shadowBlur = 15;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.closePath();
+
+        ctx.strokeStyle = "rgba(173, 216, 230, 0.7)";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Inner shine arcs
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.6)";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(x - r / 3, y - r / 3, r / 2, 0, Math.PI * 1.5);
+        ctx.stroke();
+      }
+
+      // Initialize blocks
+      function initBlocks() {
+        blocks = [];
+        for (let c = 0; c < blockColumnCount; c++) {
+          blocks[c] = [];
+          for (let r = 0; r < blockRowCount; r++) {
+            blocks[c][r] = { x: 0, y: 0, status: 1 };
+          }
+        }
+      }
+
+      // Draw blocks with premium effects
+      function drawBlocks() {
+        const colors = themes[currentTheme];
+        for (let c = 0; c < blockColumnCount; c++) {
+          for (let r = 0; r < blockRowCount; r++) {
+            if (blocks[c][r].status === 1) {
+              const blockX =
+                c * (blockWidth + blockPadding) + blockOffsetLeft;
+              const blockY =
+                r * (blockHeight + blockPadding) + blockOffsetTop;
+              blocks[c][r].x = blockX;
+              blocks[c][r].y = blockY;
+
+              ctx.save();
+              ctx.lineJoin = "round";
+              ctx.lineWidth = 3;
+
+              if (currentTheme === "neon") {
+                const glowColor = colors[r % colors.length];
+                ctx.shadowColor = glowColor;
+                ctx.shadowBlur = 18;
+                ctx.fillStyle = glowColor;
+                ctx.fillRect(blockX, blockY, blockWidth, blockHeight);
+                ctx.shadowBlur = 0;
+                ctx.strokeStyle = glowColor;
+                ctx.strokeRect(blockX, blockY, blockWidth, blockHeight);
+              } else if (currentTheme === "fire") {
+                const baseColor = colors[r % colors.length];
+                const gradient = ctx.createLinearGradient(
+                  blockX,
+                  blockY,
+                  blockX + blockWidth,
+                  blockY + blockHeight
+                );
+                gradient.addColorStop(0, baseColor);
+                gradient.addColorStop(0.5, "#ffb347");
+                gradient.addColorStop(1, "#7f1d00");
+                ctx.fillStyle = gradient;
+                ctx.fillRect(blockX, blockY, blockWidth, blockHeight);
+                ctx.strokeStyle = "#7f1d00";
+                ctx.shadowColor = "#ff4500";
+                ctx.shadowBlur = 12;
+                ctx.strokeRect(blockX, blockY, blockWidth, blockHeight);
+                ctx.shadowBlur = 0;
+              } else if (currentTheme === "pastel") {
+                const gradient = ctx.createLinearGradient(
+                  blockX,
+                  blockY,
+                  blockX + blockWidth,
+                  blockY + blockHeight
+                );
+                gradient.addColorStop(0, colors[r % colors.length]);
+                gradient.addColorStop(1, "#f0f9ff");
+                ctx.fillStyle = gradient;
+                ctx.shadowColor = "rgba(255,255,255,0.15)";
+                ctx.shadowBlur = 8;
+                ctx.fillRect(blockX, blockY, blockWidth, blockHeight);
+                ctx.shadowBlur = 0;
+                ctx.strokeStyle = "#cbd5e1";
+                ctx.lineWidth = 2;
+                ctx.strokeRect(blockX, blockY, blockWidth, blockHeight);
+              } else if (currentTheme === "metallic") {
+                const baseColor = colors[r % colors.length];
+                const gradient = ctx.createLinearGradient(
+                  blockX,
+                  blockY,
+                  blockX + blockWidth,
+                  blockY + blockHeight
+                );
+                gradient.addColorStop(0, baseColor);
+                gradient.addColorStop(0.5, "#e0e0e0");
+                gradient.addColorStop(1, "#4b4b4b");
+                ctx.fillStyle = gradient;
+                ctx.shadowColor = "#bbb";
+                ctx.shadowBlur = 15;
+                ctx.fillRect(blockX, blockY, blockWidth, blockHeight);
+                ctx.shadowBlur = 0;
+                ctx.strokeStyle = "#2c2c2c";
+                ctx.lineWidth = 3;
+                ctx.strokeRect(blockX, blockY, blockWidth, blockHeight);
+
+                // Metallic shine overlay
+                ctx.fillStyle = "rgba(255,255,255,0.15)";
+                ctx.beginPath();
+                ctx.moveTo(blockX, blockY);
+                ctx.lineTo(blockX + blockWidth * 0.7, blockY);
+                ctx.lineTo(blockX + blockWidth * 0.3, blockY + blockHeight);
+                ctx.lineTo(blockX, blockY + blockHeight);
+                ctx.closePath();
+                ctx.fill();
+              } else {
+                // Classic gradient
+                const gradient = ctx.createLinearGradient(
+                  blockX,
+                  blockY,
+                  blockX + blockWidth,
+                  blockY + blockHeight
+                );
+                gradient.addColorStop(0, colors[r % colors.length]);
+                gradient.addColorStop(1, "#1e293b");
+                ctx.fillStyle = gradient;
+                ctx.shadowColor = "rgba(0,0,0,0.3)";
+                ctx.shadowBlur = 6;
+                ctx.fillRect(blockX, blockY, blockWidth, blockHeight);
+                ctx.shadowBlur = 0;
+                ctx.strokeStyle = "#334155";
+                ctx.lineWidth = 2;
+                ctx.strokeRect(blockX, blockY, blockWidth, blockHeight);
+              }
+              ctx.restore();
+            }
+          }
+        }
+      }
+
+      // Draw paddle with subtle glow and gradient
+      function drawPaddle() {
+        const gradient = ctx.createLinearGradient(
+          paddleX,
+          HEIGHT - paddleHeight - 10,
+          paddleX + paddleWidth,
+          HEIGHT - 10
+        );
+        gradient.addColorStop(0, "#3b82f6");
+        gradient.addColorStop(1, "#2563eb");
+
+        ctx.fillStyle = gradient;
+        ctx.shadowColor = "#3b82f6";
+        ctx.shadowBlur = 12;
+        ctx.fillRect(paddleX, HEIGHT - paddleHeight - 10, paddleWidth, paddleHeight);
+        ctx.shadowBlur = 0;
+
+        ctx.strokeStyle = "#1e40af";
+        ctx.lineWidth = 4;
+        ctx.strokeRect(paddleX, HEIGHT - paddleHeight - 10, paddleWidth, paddleHeight);
+      }
+
+      // Draw ball with selected style
+      function drawBall() {
+        switch (currentBallStyle) {
+          case "glow":
+            drawBallGlow(ballX, ballY, ballRadius);
+            break;
+          case "metallic":
+            drawBallMetallic(ballX, ballY, ballRadius);
+            break;
+          case "fireball":
+            drawBallFireball(ballX, ballY, ballRadius);
+            break;
+          case "crystal":
+            drawBallCrystal(ballX, ballY, ballRadius);
+            break;
+          default:
+            drawBallClassic(ballX, ballY, ballRadius);
+        }
+      }
+
+      // Draw particles
+      function drawParticles() {
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const p = particles[i];
+          p.update();
+          p.draw(ctx);
+          if (p.alpha <= 0) {
+            particles.splice(i, 1);
+          }
+        }
+      }
+
+      // Collision detection between ball and blocks with refined bounce
+      function collisionDetection() {
+        const colors = themes[currentTheme];
+        for (let c = 0; c < blockColumnCount; c++) {
+          for (let r = 0; r < blockRowCount; r++) {
+            const b = blocks[c][r];
+            if (b.status === 1) {
+              if (
+                ballX > b.x &&
+                ballX < b.x + blockWidth &&
+                ballY > b.y &&
+                ballY < b.y + blockHeight
+              ) {
+                // Determine collision side for better bounce effect
+                const prevX = ballX - ballDX;
+                const prevY = ballY - ballDY;
+                let collidedVertically = false;
+                let collidedHorizontally = false;
+
+                if (prevY + ballRadius <= b.y) collidedVertically = true; // hit from top
+                else if (prevY - ballRadius >= b.y + blockHeight) collidedVertically = true; // hit from bottom
+
+                if (prevX + ballRadius <= b.x) collidedHorizontally = true; // hit from left
+                else if (prevX - ballRadius >= b.x + blockWidth) collidedHorizontally = true; // hit from right
+
+                if (collidedVertically) ballDY = -ballDY;
+                else if (collidedHorizontally) ballDX = -ballDX;
+                else {
+                  // fallback invert vertical velocity
+                  ballDY = -ballDY;
+                }
+
+                b.status = 0;
+                score++;
+                scoreEl.textContent = score;
+
+                // Create particles for block destruction
+                const color = colors[r % colors.length];
+                for (let i = 0; i < 25; i++) {
+                  particles.push(
+                    new Particle(
+                      b.x + blockWidth / 2,
+                      b.y + blockHeight / 2,
+                      color
+                    )
+                  );
+                }
+
+                playBlockBreakSound();
+
+                if (score === blockRowCount * blockColumnCount) {
+                  endGame(true);
+                }
+                return; // Only one block can be hit at a time
+              }
+            }
+          }
+        }
+      }
+
+      // Draw everything
+      function draw() {
+        ctx.clearRect(0, 0, WIDTH, HEIGHT);
+        drawBlocks();
+        drawPaddle();
+        drawBall();
+        drawParticles();
+      }
+
+      // Update game state
+      function update() {
+        if (!gameRunning) return;
+
+        ballX += ballDX * speedMultiplier;
+        ballY += ballDY * speedMultiplier;
+
+        // Wall collision left/right
+        if (ballX + ballRadius > WIDTH) {
+          ballX = WIDTH - ballRadius;
+          ballDX = -ballDX;
+          playBounceSound();
+        } else if (ballX - ballRadius < 0) {
+          ballX = ballRadius;
+          ballDX = -ballDX;
+          playBounceSound();
+        }
+
+        // Wall collision top
+        if (ballY - ballRadius < 0) {
+          ballY = ballRadius;
+          ballDY = -ballDY;
+          playBounceSound();
+        }
+
+        // Paddle collision
+        if (
+          ballY + ballRadius > HEIGHT - paddleHeight - 10 &&
+          ballX > paddleX &&
+          ballX < paddleX + paddleWidth
+        ) {
+          ballY = HEIGHT - paddleHeight - 10 - ballRadius;
+          ballDY = -ballDY;
+          playBounceSound();
+
+          const hitPos = ballX - (paddleX + paddleWidth / 2);
+          ballDX = hitPos * 0.18;
+        }
+
+        // Ball falls below paddle
+        if (ballY - ballRadius > HEIGHT) {
+          lives--;
+          livesEl.textContent = lives;
+          if (lives === 0) {
+            endGame(false);
+          } else {
+            resetBallAndPaddle();
+          }
+        }
+
+        collisionDetection();
+      }
+
+      // Game loop
+      function gameLoop() {
+        update();
+        draw();
+        if (gameRunning) {
+          animationId = requestAnimationFrame(gameLoop);
+        }
+      }
+
+      // Reset ball and paddle position after life lost
+      function resetBallAndPaddle() {
+        ballX = WIDTH / 2;
+        ballY = HEIGHT - 50;
+        ballDX = 5 * (Math.random() > 0.5 ? 1 : -1);
+        ballDY = -5;
+        paddleX = (WIDTH - paddleWidth) / 2;
+      }
+
+      // Show overlay message with animation and auto-hide after duration (ms)
+      function showOverlayMessage(text, duration = 1500) {
+        overlayMessage.textContent = text;
+        overlayMessage.classList.add("fade-in-scale");
+        overlayMessage.style.opacity = "1";
+        overlayText.style.pointerEvents = "auto";
+
+        return new Promise((resolve) => {
+          setTimeout(() => {
+            overlayMessage.style.opacity = "0";
+            overlayMessage.classList.remove("fade-in-scale");
+            overlayText.style.pointerEvents = "none";
+            resolve();
+          }, duration);
+        });
+      }
+
+      // Start game with "Mulai" animation and sound
+      async function startGame() {
+        initAudio();
+        score = 0;
+        lives = 3;
+        scoreEl.textContent = score;
+        livesEl.textContent = lives;
+        initBlocks();
+        resetBallAndPaddle();
+        particles.length = 0;
+        startBtn.classList.add("hidden");
+        restartBtn.classList.add("hidden");
+        gameRunning = false;
+
+        await showOverlayMessage("Mulai", 1200);
+        playStartSound();
+
+        gameRunning = true;
+        restartBtn.classList.remove("hidden");
+        gameLoop();
+      }
+
+      // End game with custom message and sound
+      async function endGame(won) {
+        gameRunning = false;
+        cancelAnimationFrame(animationId);
+        ctx.clearRect(0, 0, WIDTH, HEIGHT);
+        drawBlocks();
+        drawPaddle();
+        drawBall();
+        drawParticles();
+
+        if (won) {
+          await showOverlayMessage("You Win! 🎉", 2000);
+        } else {
+          await showOverlayMessage("bot banget lu😹", 2500);
+          playGameOverSound();
+        }
+
+        startBtn.classList.add("hidden");
+        restartBtn.classList.remove("hidden");
+      }
+
+      // Event listeners for paddle control
+      function keyDownHandler(e) {
+        if (e.key === "Right" || e.key === "ArrowRight") {
+          rightPressed = true;
+        } else if (e.key === "Left" || e.key === "ArrowLeft") {
+          leftPressed = true;
+        }
+      }
+
+      function keyUpHandler(e) {
+        if (e.key === "Right" || e.key === "ArrowRight") {
+          rightPressed = false;
+        } else if (e.key === "Left" || e.key === "ArrowLeft") {
+          leftPressed = false;
+        }
+      }
+
+      // Touch controls for mobile
+      let touchStartX = null;
+      function touchStartHandler(e) {
+        if (e.touches.length === 1) {
+          touchStartX = e.touches[0].clientX;
+        }
+      }
+      function touchMoveHandler(e) {
+        if (e.touches.length === 1 && touchStartX !== null) {
+          const touchX = e.touches[0].clientX;
+          const diff = touchX - touchStartX;
+          paddleX += diff;
+          if (paddleX < 0) paddleX = 0;
+          if (paddleX + paddleWidth > WIDTH) paddleX = WIDTH - paddleWidth;
+          touchStartX = touchX;
+        }
+      }
+      function touchEndHandler(e) {
+        touchStartX = null;
+      }
+
+      // Attach event listeners
+      document.addEventListener("keydown", keyDownHandler);
+      document.addEventListener("keyup", keyUpHandler);
+      canvas.addEventListener("touchstart", touchStartHandler, { passive: false });
+      canvas.addEventListener("touchmove", touchMoveHandler, { passive: false });
+      canvas.addEventListener("touchend", touchEndHandler);
+
+      startBtn.addEventListener("click", () => {
+        startGame();
+      });
+
+      restartBtn.addEventListener("click", () => {
+        startGame();
+      });
+
+      // Opening screen buttons
+      playBtn.addEventListener("click", () => {
+        currentTheme = themeSelect.value;
+        currentBallStyle = ballSelect.value;
+        soundEnabled = soundToggle.checked;
+
+        // Set speed multiplier based on speedSelect
+        const speedVal = speedSelect.value;
+        if (speedVal === "slow") speedMultiplier = 0.6;
+        else if (speedVal === "normal") speedMultiplier = 1;
+        else if (speedVal === "fast") speedMultiplier = 7;
+        else speedMultiplier = 1;
+
+        openingScreen.classList.add("hidden");
+        gameScreen.classList.remove("hidden");
+        // Reset UI states
+        startBtn.classList.remove("hidden");
+        restartBtn.classList.add("hidden");
+        scoreEl.textContent = "0";
+        livesEl.textContent = "3";
+        ctx.clearRect(0, 0, WIDTH, HEIGHT);
+      });
+
+      backToMenuBtn.addEventListener("click", () => {
+        gameRunning = false;
+        cancelAnimationFrame(animationId);
+        particles.length = 0;
+        openingScreen.classList.remove("hidden");
+        gameScreen.classList.add("hidden");
+        startBtn.classList.remove("hidden");
+        restartBtn.classList.add("hidden");
+        scoreEl.textContent = "0";
+        livesEl.textContent = "3";
+        ctx.clearRect(0, 0, WIDTH, HEIGHT);
+      });
+
+      settingsBtn.addEventListener("click", () => {
+        settingsModal.classList.remove("hidden");
+      });
+
+      closeSettingsBtn.addEventListener("click", () => {
+        settingsModal.classList.add("hidden");
+      });
+
+      // Close modal on outside click
+      settingsModal.addEventListener("click", (e) => {
+        if (e.target === settingsModal) {
+          settingsModal.classList.add("hidden");
+        }
+      });
+
+      // Initial draw on canvas for opening screen (blank)
+      ctx.clearRect(0, 0, WIDTH, HEIGHT);
+    })();
+  </script>
+</body>
+</html>
